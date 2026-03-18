@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customer Churn Predictor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #1a1a1a;
+      color: white;
+      padding: 18px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    header span {
+      font-size: 0.8rem;
+      background: #2e7d32;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 99px;
+    }
+
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+    }
+
+    form {
+      background: white;
+      border-radius: 16px;
+      padding: 36px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="number"],
+    select {
+      height: 44px;
+      padding: 0 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      color: #1a1a1a;
+      background: #fafafa;
+      transition: border-color 0.2s;
+      width: 100%;
+      appearance: none;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #1a1a1a;
+      background: white;
+    }
+
+    .select-box {
+      position: relative;
+    }
+
+    .select-box select {
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    .select-box::after {
+      content: '↓';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #999;
+      font-size: 0.85rem;
+    }
+
+    .toggles {
+      display: flex;
+      gap: 32px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      display: none;
+    }
+
+    .track {
+      width: 44px;
+      height: 24px;
+      background: #ddd;
+      border-radius: 99px;
+      position: relative;
+      transition: background 0.25s;
+    }
+
+    .thumb {
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.25s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .toggle input:checked + .track {
+      background: #1a1a1a;
+    }
+
+    .toggle input:checked + .track .thumb {
+      transform: translateX(20px);
+    }
+
+    .toggle-label {
+      font-size: 0.9rem;
+      color: #1a1a1a;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #f0f0f0;
+      margin: 24px 0;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      height: 48px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 99px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button[type="submit"]:hover {
+      background: #333;
+      transform: translateY(-1px);
+    }
+
+    button[type="submit"].loading {
+      opacity: 0.6;
+      pointer-events: none;
+      cursor: wait;
+    }
+
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    button.loading .btn-text { display: none; }
+    button.loading .spinner  { display: block; }
+
+    /* Result card */
+    .result {
+      display: none;
+      margin-top: 24px;
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      text-align: center;
+      animation: fadeUp 0.35s ease both;
+    }
+
+    .result.show { display: block; }
+
+    .result-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .result-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .result-prob {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .badge.low    { background: #e8f5e9; color: #2e7d32; }
+    .badge.medium { background: #fff8e1; color: #f57f17; }
+    .badge.high   { background: #ffebee; color: #c62828; }
+
+    .advice {
+      font-size: 0.9rem;
+      color: #555;
+      line-height: 1.7;
+      max-width: 440px;
+      margin: 0 auto 24px;
+    }
+
+    .reset {
+      background: none;
+      border: 1.5px solid #e0e0e0;
+      color: #555;
+      padding: 10px 24px;
+      border-radius: 99px;
+      font-size: 0.875rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .reset:hover {
+      border-color: #1a1a1a;
+      color: #1a1a1a;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.78rem;
+      color: #aaa;
+    }
+
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes fadeUp  { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 600px) {
+      .grid  { grid-template-columns: 1fr; }
+      .field.full { grid-column: 1; }
+      form   { padding: 24px 20px; }
+      main   { margin: 24px auto; }
+      .toggles { flex-direction: column; gap: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Churn Predictor</h1>
+    <span>Model live</span>
+  </header>
+
+  <main>
+    <h2>Customer Risk Check</h2>
+    <p class="subtitle">Enter the customer details below to get a churn prediction.</p>
+
+    <form id="churnForm" novalidate>
+      <div class="grid">
+
+        <div class="field">
+          <label for="credit_score">Credit Score</label>
+          <input type="number" id="credit_score" placeholder="e.g. 650"
+                 min="300" max="850" required />
+        </div>
+
+        <div class="field">
+          <label for="age">Age</label>
+          <input type="number" id="age" placeholder="e.g. 35"
+                 min="18" max="100" required />
+        </div>
+
+        <div class="field">
+          <label for="country">Country</label>
+          <div class="select-box">
+            <select id="country" required>
+              <option value="" disabled selected>Select…</option>
+              <option value="France">France</option>
+              <option value="Germany">Germany</option>
+              <option value="Spain">Spain</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="gender">Gender</label>
+          <div class="select-box">
+            <select id="gender" required>
+              <option value="" disabled selected>Select…</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="tenure">Tenure (years)</label>
+          <input type="number" id="tenure" placeholder="e.g. 3"
+                 min="0" max="10" required />
+        </div>
+
+        <div class="field">
+          <label for="products_number">Number of Products</label>
+          <input type="number" id="products_number" placeholder="1 – 4"
+                 min="1" max="4" required />
+        </div>
+
+        <div class="field">
+          <label for="balance">Account Balance ($)</label>
+          <input type="number" id="balance" placeholder="e.g. 80000"
+                 min="0" step="0.01" required />
+        </div>
+
+        <div class="field">
+          <label for="estimated_salary">Estimated Salary ($)</label>
+          <input type="number" id="estimated_salary" placeholder="e.g. 55000"
+                 min="0" step="0.01" required />
+        </div>
+
+        <div class="field full">
+          <label>Customer Flags</label>
+          <div class="toggles">
+
+            <label class="toggle">
+              <input type="checkbox" id="credit_card" checked />
+              <div class="track"><div class="thumb"></div></div>
+              <span class="toggle-label">Has Credit Card</span>
+            </label>
+
+            <label class="toggle">
+              <input type="checkbox" id="active_member" checked />
+              <div class="track"><div class="thumb"></div></div>
+              <span class="toggle-label">Active Member</span>
+            </label>
+
+          </div>
+        </div>
+
+      </div>
+
+      <hr class="divider" />
+
+      <button type="submit" id="submitBtn">
+        <span class="btn-text">Predict Churn</span>
+        <div class="spinner"></div>
+      </button>
+    </form>
+
+    <div class="result" id="result">
+      <div class="result-icon" id="resultIcon"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-prob" id="resultProb"></div>
+      <div class="badge" id="resultBadge"></div>
+      <p class="advice" id="resultAdvice"></p>
+      <button class="reset" id="resetBtn">Check another customer</button>
+    </div>
+
+  </main>
+
+  <footer>
+    Flask · scikit-learn · Random Forest
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      var form      = document.getElementById('churnForm');
+      var submitBtn = document.getElementById('submitBtn');
+      var result    = document.getElementById('result');
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+
+        submitBtn.classList.add('loading');
+
+        var payload = {
+          credit_score:     parseInt(document.getElementById('credit_score').value, 10),
+          country:          document.getElementById('country').value,
+          gender:           document.getElementById('gender').value,
+          age:              parseInt(document.getElementById('age').value, 10),
+          tenure:           parseInt(document.getElementById('tenure').value, 10),
+          balance:          parseFloat(document.getElementById('balance').value),
+          products_number:  parseInt(document.getElementById('products_number').value, 10),
+          estimated_salary: parseFloat(document.getElementById('estimated_salary').value),
+          credit_card:      document.getElementById('credit_card').checked   ? 1 : 0,
+          active_member:    document.getElementById('active_member').checked ? 1 : 0,
+        };
+
+        try {
+          var res  = await fetch('/predict', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload),
+          });
+
+          if (!res.ok) {
+            var err = await res.json().catch(function () { return {}; });
+            throw new Error(err.message || 'Server error ' + res.status);
+          }
+
+          var data = await res.json();
+
+          if (data.status === 'success') {
+            showResult(data.prediction);
+          } else {
+            throw new Error(data.message || 'Unexpected error');
+          }
+
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          submitBtn.classList.remove('loading');
+        }
+      });
+
+      function showResult(pred) {
+        var pct  = Math.round(pred.churn_probability * 100);
+        var risk = pred.risk_level.toLowerCase();
+
+        var icons   = { low: '✅', medium: '⚡', high: '🚨' };
+        var titles  = { low: 'Low Risk', medium: 'Medium Risk', high: 'High Risk' };
+        var advice  = {
+          low:    'This customer is unlikely to churn. Schedule a routine check-in in 90 days.',
+          medium: 'Moderate churn risk. Consider a personal outreach call and a loyalty offer.',
+          high:   'High churn risk. Escalate to the retention team and offer an account review.',
+        };
+
+        document.getElementById('resultIcon').textContent  = icons[risk]  || '❓';
+        document.getElementById('resultTitle').textContent = titles[risk] || pred.risk_level;
+        document.getElementById('resultProb').textContent  = pct + '%';
+        document.getElementById('resultAdvice').textContent = advice[risk] || '';
+
+        var badge = document.getElementById('resultBadge');
+        badge.textContent = pred.risk_level + ' RISK';
+        badge.className   = 'badge ' + risk;
+
+        document.getElementById('resultProb').style.color =
+          risk === 'high' ? '#c62828' : risk === 'medium' ? '#f57f17' : '#2e7d32';
+
+        result.classList.add('show');
+        result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      function showError(msg) {
+        document.getElementById('resultIcon').textContent   = '❌';
+        document.getElementById('resultTitle').textContent  = 'Something went wrong';
+        document.getElementById('resultProb').textContent   = '';
+        document.getElementById('resultAdvice').textContent = msg;
+        var badge = document.getElementById('resultBadge');
+        badge.textContent = 'ERROR';
+        badge.className   = 'badge high';
+        result.classList.add('show');
+      }
+
+      document.getElementById('resetBtn').addEventListener('click', function () {
+        result.classList.remove('show');
+        form.reset();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment
+.env
+.env.local
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store
+
+# Data — raw data stays local, not on GitHub
+data/raw/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Pytest
+.pytest_cache/
