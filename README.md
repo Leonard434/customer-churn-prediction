@@ -649,9 +649,9 @@ def new_endpoint():
 
 ---
 
-## License
+## Author
 
-[Specify your license here]
+Leonard Thuranira
 
 ---
 
