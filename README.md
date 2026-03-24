@@ -657,7 +657,7 @@ Leonard Thuranira
 
 ## Contact & Support
 
-For issues or questions, please create an issue in the repository or contact the development team.
+For issues or questions, please create an issue in the repository or contact leonardthuranira253@gmail.com.
 
 ---
 
